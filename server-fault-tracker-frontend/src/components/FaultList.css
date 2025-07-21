@@ -1,0 +1,52 @@
+.fault-list-container {
+  margin-top: 2rem;
+}
+
+.fault-list-title {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.fault-card {
+  background-color: #fff;
+  border-left: 4px solid #007bff;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+}
+
+.fault-card h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #222;
+}
+
+.fault-card p {
+  margin: 0.25rem 0;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.fault-severity {
+  font-weight: bold;
+  color: #d9534f;
+}
+
+.fault-status {
+  font-style: italic;
+  color: #5bc0de;
+}
+
+/* Modo oscuro */
+body.dark-mode .fault-card {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border-left-color: #90caf9;
+}
+
+body.dark-mode .fault-card h3,
+body.dark-mode .fault-card p {
+  color: #ddd;
+}
