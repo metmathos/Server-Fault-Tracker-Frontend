@@ -14,7 +14,7 @@ function FaultEditForm() {
   const [severity, setSeverity] = useState('');
   const [techs, setTechs] = useState([]);
   const [loadingTechs, setLoadingTechs] = useState(true);
-
+  const [errorTech, setErrorTechs] = useState(null);
   useEffect(() => {
     const fetchFault = async () => {
       try {
@@ -72,10 +72,43 @@ function FaultEditForm() {
     }
     fetchTechIdsNames()
   },[]);
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Lógica para enviar los datos editados
+
+    const modFault = {
+      description,
+      server_id: Number(serverId),
+      technician_id: Number(technicianId),
+      status,
+      severity
+    };
+
+    console.log("Enviando:", modFault); // Para debug
+
+    try {
+      const response = await fetch('http://localhost:8000/faults/', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newFault),
+      });
+
+      if (response.ok) {
+        setMessage('✅ Falla modificada con éxito');
+        setDescription('');
+        setServerId('');
+        setTechnicianId('');
+        setStatus('pending');
+        setSeverity('low');
+      } else {
+        const errorData = await response.json();
+        console.error(errorData);
+        setMessage(`❌ Error: ${errorData.detail || 'Algo salió mal'}`);
+      }
+    } catch (error) {
+      setMessage('❌ Error al conectar con la API');
+      console.error(error);
+    }
   };
 
   if (loadingData) return <p>Cargando datos de la falla...</p>;
