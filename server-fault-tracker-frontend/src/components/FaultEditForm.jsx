@@ -15,6 +15,14 @@ function FaultEditForm() {
   const [techs, setTechs] = useState([]);
   const [loadingTechs, setLoadingTechs] = useState(true);
   const [errorTech, setErrorTechs] = useState(null);
+  const [statuses, setStatuses] = useState([]);
+  const [loadingStatuses, setLoadingStatuses] = useState(true);
+  const [severities, setSeverities] = useState([]);
+  const [loadingSeverities, setLoadingSeverities] = useState(true);
+  const [originalStatus, loadingOriginalStatus] = useState('');
+  const [originalDescription, loadingOriginalDescription] = useState('');
+  const [message, setMessage] = useState('');
+  
   useEffect(() => {
     const fetchFault = async () => {
       try {
@@ -24,6 +32,8 @@ function FaultEditForm() {
         }
         const data = await res.json();
         setFaultData(data);
+        setOriginalStatus(data.status);
+        setOriginalDescription(data.description);
       } catch (err) {
         setErrorData(err.message);
       } finally {
@@ -73,12 +83,74 @@ function FaultEditForm() {
     fetchTechIdsNames()
   },[]);
   
+  useEffect(()=>{
+    const fetchValidStatuses = async() => {
+      try {
+      const res = await fetch('http://localhost:8000/faults/valid-statuses/');
+      if (!res.ok) {
+        throw new Error(`Error HTTP: ${res.status} - ${res.statusText}`);
+      }
+      const data = await res.json();
+      setStatuses(data.statuses);
+    } catch (err) {
+      console.error('Error al obtener endpoint GET /faults/valid-statuses/', err);
+    } finally {
+      setLoadingStatuses(false);
+    }
+    }
+    fetchValidStatuses()
+  },[]);
+
+    useEffect(()=>{
+    const fetchValidSeverities = async() => {
+      try {
+      const res = await fetch('http://localhost:8000/faults/valid-severities/');
+      if (!res.ok) {
+        throw new Error(`Error HTTP: ${res.status} - ${res.statusText}`);
+      }
+      const data = await res.json();
+      setSeverities(data.severities);
+    } catch (err) {
+      console.error('Error al obtener endpoint GET /faults/valid-severities/', err);
+    } finally {
+      setLoadingSeverities(false);
+    }
+    }
+    fetchValidSeverities()
+  },[]);
+  
+    const statusTranslations = {
+      pending: "Pendiente",
+      under_analysis: "Bajo Análisis",
+      waiting_for_spare_parts: "Esperando repuestos",
+      resolved: "Resuelto",
+      closed: "Cerrado",
+      in_progress: "En progreso",
+      rejected: "Rechazado",
+      reopened: "Reabierto",
+      escalated: "Escalado",
+      cancelled: "Cancelado"
+    };
+
+    const severityTranslations = {
+      informational: "Informativa",
+      low: "Baja",
+      medium: "Media",
+      high: "Alta",
+      critical: "Crítica"
+    };
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if(status!==originalStatus && description===originalDescription){
+      setErrorMessage('Si cambia el estado, tambien debe modificar la descripción')
+      return;
+    }
 
     const modFault = {
       description,
-      server_id: Number(serverId),
+      server_id: Number(faultData.serverId),
       technician_id: Number(technicianId),
       status,
       severity
@@ -90,7 +162,7 @@ function FaultEditForm() {
       const response = await fetch('http://localhost:8000/faults/', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newFault),
+        body: JSON.stringify(modFault),
       });
 
       if (response.ok) {
@@ -167,6 +239,49 @@ function FaultEditForm() {
               ))}
             </select>
         </div>
+        <div>
+          <label>Estado:</label><br />
+           {loadingStatuses?(
+            <p>Cargando lista de estados...</p>
+            ):statuses.length===0?(
+            <p>No hay estados registrados</p>
+            ):(
+            <select
+              required
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              style={{ width: '100%' }}
+            >
+              {statuses.map(stat => (
+                <option key={stat} value={stat}>
+                  {statusTranslations[stat] || stat}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+        <div>
+          <label>Severidad:</label><br />
+           {loadingSeverities?(
+            <p>Cargando lista de severidades...</p>
+            ):severities.length===0?(
+            <p>No hay severidades registradas</p>
+            ):(
+            <select
+              required
+              value={severity}
+              onChange={(e) => setSeverity(e.target.value)}
+              style={{ width: '100%' }}
+            >
+              {severities.map(sev => (
+                <option key={sev} value={sev}>
+                  {severityTranslations[sev] || sev}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+        
         <button type="submit">Guardar Cambios</button>
       </form>
     </div>
